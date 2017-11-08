@@ -1,5 +1,7 @@
 {
-  "name": "i18n-translate-qt",
+  "name": "i18n-translate-qt-ts",
+  "author": "Ed Sutton",
+  "private": false,
   "version": "1.0.0",
   "description": "Automatically translates TS file format used by Qt Linguist to different languages via Google Translate API.",
   "main": "index.js",
@@ -13,16 +15,22 @@
   "keywords": [
     "i18n",
     "translate",
-    "Qt",
-    "Linguist",
-    "Google",
-    "Translate",
-    "APO"
+    "qt",
+    "qt linguist",
+    "google translate",
+    "automation",
+    "build"
   ],
-  "author": "Ed Sutton",
+  "bin": {
+    "i18n-translate-qt-ts": "index.js"
+  },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/esutton/i18n-translate-qt/issues"
+    "url": "https://github.com/esutton/i18n-translate-qt-ts/issues"
   },
-  "homepage": "https://github.com/esutton/i18n-translate-qt#readme"
+  "homepage": "https://github.com/esutton/i18n-translate-qt-ts#readme",
+  "dependencies": {
+    "commander": "^2.11.0",
+    "google-translate": "^2.0.5"
+  }
 }
