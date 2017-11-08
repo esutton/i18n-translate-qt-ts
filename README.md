@@ -13,7 +13,7 @@ i18n-translate-qt-ts <googleTranslateApiKey> <workingFolder> <inputLanguage> <ou
 
 Example:
 ````
-i18n-translate-qt-ts myLongSecretApiKey app/i18n en es,fr
+i18n-translate-qt-ts myLongSecretApiKey app/i18n en cs,da,de,es,fr,nl,pl,sv
 ````
 
 # [Qt](https://www.qt.io/)
