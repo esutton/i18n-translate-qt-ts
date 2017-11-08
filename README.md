@@ -17,16 +17,14 @@ i18n-translate-qt-ts myLongSecretApiKey app/i18n en cs,da,de,es,fr,nl,pl,sv
 ````
 
 # [Qt](https://www.qt.io/)
-https://www.qt.io/
 A C++ based cross-platform SDK supporting desktops, embedded, Android, and iOS.
+* https://www.qt.io/
 
 ## [Qt Linguist](http://doc.qt.io/qt-5/qtlinguist-index.html)
-http://doc.qt.io/qt-5/qtlinguist-index.html
+* http://doc.qt.io/qt-5/qtlinguist-index.html
 
 ### [Qt Linguist TS File Format](http://doc.qt.io/qt-5/linguist-ts-file-format.html)
-
-http://doc.qt.io/qt-5/linguist-ts-file-format.html
-
+* http://doc.qt.io/qt-5/linguist-ts-file-format.html
 
 #### Base Language en
 ````
