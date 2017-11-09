@@ -10,7 +10,15 @@ const fs = require('fs');
 const program = require('commander');
 const xmldom = require('xmldom').DOMParser;
 
-function getElementByTagName(parent, name) {
+function getAttributeByName(element, name) {
+  const attribute = element.getAttributeNode(name);
+  if(!attribute) {
+    return '';
+  }
+  return attribute.value;
+}
+
+function getElementByName(parent, name) {
   const elementList = parent.getElementsByTagName(name);
   if (!elementList.length) {
     return '';
@@ -21,22 +29,14 @@ function getElementByTagName(parent, name) {
   return elementList[0];
 }
 
-function dump (doc, message) {
-  //console.log(`dbg: message: = ${message}`);  
-  const source = getElementByTagName(message, 'source');
-  const translation = getElementByTagName(message, 'translation');
-  const translationType = translation.getAttributeNode('type');
-  // console.log(`dbg: source: ${source}`);  
-  // console.log(`dbg: translation: ${translation}`);  
-  // console.log(`dbg: translationType: ${translationType}`);  
-  if(translationType) {
-    //console.log(`dbg: translationType.value: ${translationType.value}`);  
-    if (translationType.value !== 'unfinished') {
-      console.log('dbg: already translateed');
-      return;
-    }    
-  }
-
+function messageTranslate (doc, message) {
+  const source = getElementByName(message, 'source');
+  const translation = getElementByName(message, 'translation');
+  const translationType = getAttributeByName(translation, 'type');
+  if (translationType !== 'unfinished') {
+    console.log('dbg: already translateed');
+    return;
+  }    
 
   console.log(`dbg: translate "${source.firstChild.nodeValue}"`);
 }
@@ -80,21 +80,11 @@ fs.readFile(inputFileName, 'utf-8', function (err, data) {
   if (err) {
     throw err;
   }
-  var thisgenreobject,
-      thisgenre,
-      doc;
-  doc = new xmldom().parseFromString(data, 'application/xml');
+  const doc = new xmldom().parseFromString(data, 'application/xml');
   const messageList = doc.getElementsByTagName('message');
   for (let i = 0; i < messageList.length; i += 1) {
     const message = messageList[i];
-    dump(doc, message);
-    // thisgenreobject = messageList[message];
-    // if (thisgenreobject.firstChild) {
-    //   thisgenre = thisgenreobject.firstChild.nodeValue;
-    //   if (thisgenre === 'Computer') {
-    //     console.log(thisgenreobject.parentNode.getElementsByTagName('title')[0].firstChild.nodeValue);
-    //   }
-    // }
+    messageTranslate(doc, message);
   }
 });
 
