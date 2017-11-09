@@ -36,7 +36,7 @@ function messageTranslate (doc, message) {
   const translation = getElementByName(message, 'translation');
   const translationType = getAttributeByName(translation, 'type');
   if (translationType !== 'unfinished') {
-    console.log('dbg: already translateed');
+    //console.log('dbg: already translateed');
     return;
   }    
 
@@ -45,7 +45,7 @@ function messageTranslate (doc, message) {
   const textNode = doc.createTextNode(translated);
   translation.appendChild(textNode);
   
-  console.log(`dbg: translated "${source.firstChild.nodeValue}" to "${translated}"`);
+  //console.log(`dbg: translated "${source.firstChild.nodeValue}" to "${translated}"`);
 }
 
 // async
@@ -53,6 +53,16 @@ function translateTo(inputFileName, language) {
   console.log('******************************************************');
   console.log(` Translate to ${language}`);
   console.log('******************************************************');
+  // Get project name from input filename.
+  // Example:  myproject_en.ts
+  const pos = inputFileName.lastIndexOf('_');
+  const filextensionLength = inputFileName.length - pos;
+  if (pos < 0 || filextensionLength < 6) {
+    console.log(`*** Errror: Unexpected input file name format: "${inputFileName}"`);
+    return;
+  }
+
+  const outputFilename = `${inputFileName.substring(0, pos)}_${language}.ts`;
   fs.readFile(inputFileName, 'utf-8', function (err, data) {
     if (err) {
       throw err;
@@ -64,12 +74,10 @@ function translateTo(inputFileName, language) {
       messageTranslate(doc, message);
     }
     const xml = new XMLSerializer().serializeToString(doc);
-    fs.writeFile(`${inputFileName}_${language}.xml`, xml, function(err) {
+    fs.writeFile(outputFilename, xml, function(err) {
       if(err) {
           return console.log(err);
       }
-  
-      console.log("The file was saved!");
     }); 
 
   });
@@ -120,6 +128,6 @@ if(!languageList.length) {
 for(let i = 0; i < languageList.length; i += 1) {
   const language = languageList[i];
   const xml = translateTo(tsFileInputLanguage, language);
-  return;
+  return; // Stop at one for debugging
 }
 
