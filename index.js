@@ -10,6 +10,10 @@ const fs = require('fs');
 const program = require('commander');
 const xmldom = require('xmldom').DOMParser;
 
+function dump () {
+  console.log(`dbg: message[${i}] = ${message}`);  
+}
+
 let _googleTranslateApiKey;
 let _workingFolder;
 let _inputLanguage;
@@ -56,7 +60,7 @@ fs.readFile(inputFileName, 'utf-8', function (err, data) {
   const messageList = doc.getElementsByTagName('message');
   for (let i = 0; i < messageList.length; i += 1) {
     const message = messageList[i];
-    console.log(`dbg: message[${i}] = ${message}`);
+    dump(message);
     thisgenreobject = messageList[message];
     if (thisgenreobject.firstChild) {
       thisgenre = thisgenreobject.firstChild.nodeValue;
