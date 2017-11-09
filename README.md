@@ -1,5 +1,5 @@
 # i18n-translate-qt-ts
-Automatically translates TS file format used by Qt Linguist to different languages via Google Translate API
+Automatically translates Qt Linguist TS file to different languages via Google Translate API
 
 Usage:
 ````

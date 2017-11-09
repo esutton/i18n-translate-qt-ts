@@ -7,6 +7,7 @@
 'use strict';
 
 const fs = require('fs');
+const glob = require('glob-fs')({ gitignore: true });
 const program = require('commander');
 const xmldom = require('xmldom').DOMParser;
 
@@ -71,31 +72,37 @@ program
 .usage('<googleTranslateApiKey> <workingFolder> <inputLanguage> <outputLanguageList>')
 .arguments('<googleTranslateApiKey> <workingFolder> <inputLanguage> <outputLanguageList>','\nUse Google Translate on Qt Linguist TS files')
 .action(function (googleTranslateApiKey, workingFolder, inputLanguage, outputLanguageList) {
-  console.log('googleTranslateApiKey:', googleTranslateApiKey);
-  console.log('workingFolder:', workingFolder);
-  console.log('inputLanguage:', inputLanguage);
-
   _googleTranslateApiKey = googleTranslateApiKey;
   _workingFolder = workingFolder;
   _inputLanguage = inputLanguage;
   _outputLanguageList = outputLanguageList;
-
 }); 
 
 program.parse(process.argv);
 
+const inputLanguagePath = `${_workingFolder}/*_${_inputLanguage}.ts`;
+const inputFileList = glob.readdirSync(inputLanguagePath, {});
+console.log('dbg inputFileList', inputFileList);
 
+if(!inputFileList.length) {
+  console.error(`*** Error no input language found (${_inputLanguage}) in path: ${inputLanguagePath}`)
+  return;
+}
+
+if(inputFileList.length > 1) {
+  console.error(`*** Error found ${inputFileList.length} matches for: ${inputLanguagePath}`)
+  return;
+}
+
+const tsFileInputLanguage = inputFileList[0];
 const languageList = _outputLanguageList ? _outputLanguageList.split(',') : [];
-// console.log('_outputLanguageList:', _outputLanguageList);
-// for(let i = 0; i < languageList.length; i += 1) {
-//   console.log(`dbg: language[${i}] = `, languageList[i]);
-// }
+if(!languageList.length) {
+  console.error(`*** Error found no output languages`)
+  return;
+}
 
-console.log('ToDo: 1) Iterate <inputLanguage> TS file, 2) For each language translate, 3) Build new language TS file');
-
-const inputFileName = 'test/i18n/tsr_en.ts';
 for(let i = 0; i < languageList.length; i += 1) {
   const language = languageList[i];
-  translateTo(inputFileName, language);
+  translateTo(tsFileInputLanguage, language);
 }
 

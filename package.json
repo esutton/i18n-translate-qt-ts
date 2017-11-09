@@ -32,6 +32,7 @@
   "homepage": "https://github.com/esutton/i18n-translate-qt-ts#readme",
   "dependencies": {
     "commander": "^2.11.0",
+    "glob-fs": "^0.1.7",
     "google-translate": "^2.0.5",
     "xmldom": "^0.1.27"
   }
