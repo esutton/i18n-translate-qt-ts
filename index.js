@@ -10,8 +10,35 @@ const fs = require('fs');
 const program = require('commander');
 const xmldom = require('xmldom').DOMParser;
 
-function dump () {
-  console.log(`dbg: message[${i}] = ${message}`);  
+function getElementByTagName(parent, name) {
+  const elementList = parent.getElementsByTagName(name);
+  if (!elementList.length) {
+    return '';
+  }
+  if (elementList.length > 1) {
+    console.warn(`*** Found ${elementList.length} elements matching name: ${name}`)
+  }
+  return elementList[0];
+}
+
+function dump (doc, message) {
+  //console.log(`dbg: message: = ${message}`);  
+  const source = getElementByTagName(message, 'source');
+  const translation = getElementByTagName(message, 'translation');
+  const translationType = translation.getAttributeNode('type');
+  // console.log(`dbg: source: ${source}`);  
+  // console.log(`dbg: translation: ${translation}`);  
+  // console.log(`dbg: translationType: ${translationType}`);  
+  if(translationType) {
+    //console.log(`dbg: translationType.value: ${translationType.value}`);  
+    if (translationType.value !== 'unfinished') {
+      console.log('dbg: already translateed');
+      return;
+    }    
+  }
+
+
+  console.log(`dbg: translate "${source.firstChild.nodeValue}"`);
 }
 
 let _googleTranslateApiKey;
@@ -60,14 +87,14 @@ fs.readFile(inputFileName, 'utf-8', function (err, data) {
   const messageList = doc.getElementsByTagName('message');
   for (let i = 0; i < messageList.length; i += 1) {
     const message = messageList[i];
-    dump(message);
-    thisgenreobject = messageList[message];
-    if (thisgenreobject.firstChild) {
-      thisgenre = thisgenreobject.firstChild.nodeValue;
-      if (thisgenre === 'Computer') {
-        console.log(thisgenreobject.parentNode.getElementsByTagName('title')[0].firstChild.nodeValue);
-      }
-    }
+    dump(doc, message);
+    // thisgenreobject = messageList[message];
+    // if (thisgenreobject.firstChild) {
+    //   thisgenre = thisgenreobject.firstChild.nodeValue;
+    //   if (thisgenre === 'Computer') {
+    //     console.log(thisgenreobject.parentNode.getElementsByTagName('title')[0].firstChild.nodeValue);
+    //   }
+    // }
   }
 });
 
