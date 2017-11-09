@@ -55,3 +55,13 @@ A C++ based cross-platform SDK supporting desktops, embedded, Android, and iOS.
   </context>
 </TS>
 ````
+
+# ToDo:
+
+1) Iterate through test/i8n/tsr_en.ts
+2) Get all /message/source/ text
+3) Replace /message/translation/ text
+
+See:
+* https://github.com/jindw/xmldom/issues/99
+* 
