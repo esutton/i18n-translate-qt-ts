@@ -10,6 +10,7 @@ const fs = require('fs');
 const glob = require('glob-fs')({ gitignore: true });
 const program = require('commander');
 const xmldom = require('xmldom').DOMParser;
+var XMLSerializer = require('xmldom').XMLSerializer;
 
 function getAttributeByName(element, name) {
   const attribute = element.getAttributeNode(name);
@@ -30,7 +31,7 @@ function getElementByName(parent, name) {
   return elementList[0];
 }
 
-function messageTranslate (message) {
+function messageTranslate (doc, message) {
   const source = getElementByName(message, 'source');
   const translation = getElementByName(message, 'translation');
   const translationType = getAttributeByName(translation, 'type');
@@ -39,9 +40,15 @@ function messageTranslate (message) {
     return;
   }    
 
-  console.log(`dbg: translate "${source.firstChild.nodeValue}"`);
+  // ToDo: Call Google API
+  const translated = source.firstChild.nodeValue + 'xxx';
+  const textNode = doc.createTextNode(translated);
+  translation.appendChild(textNode);
+  
+  console.log(`dbg: translated "${source.firstChild.nodeValue}" to "${translated}"`);
 }
 
+// async
 function translateTo(inputFileName, language) {
   console.log('******************************************************');
   console.log(` Translate to ${language}`);
@@ -54,8 +61,17 @@ function translateTo(inputFileName, language) {
     const messageList = doc.getElementsByTagName('message');
     for (let i = 0; i < messageList.length; i += 1) {
       const message = messageList[i];
-      messageTranslate(message);
+      messageTranslate(doc, message);
     }
+    const xml = new XMLSerializer().serializeToString(doc);
+    fs.writeFile(`${inputFileName}_${language}.xml`, xml, function(err) {
+      if(err) {
+          return console.log(err);
+      }
+  
+      console.log("The file was saved!");
+    }); 
+
   });
     
 }
@@ -103,6 +119,7 @@ if(!languageList.length) {
 
 for(let i = 0; i < languageList.length; i += 1) {
   const language = languageList[i];
-  translateTo(tsFileInputLanguage, language);
+  const xml = translateTo(tsFileInputLanguage, language);
+  return;
 }
 

@@ -49,8 +49,8 @@ A C++ based cross-platform SDK supporting desktops, embedded, Android, and iOS.
   <context>
       <name>QPushButton</name>
       <message>
-          <source>Hola</source>
-          <translation type="unfinished"></translation>
+          <source>Hello</source>
+          <translation>Hola</translation>
       </message>
   </context>
 </TS>
