@@ -34,11 +34,19 @@ function getElementByName(parent, name) {
 function messageTranslate (doc, message) {
   const source = getElementByName(message, 'source');
   const translation = getElementByName(message, 'translation');
-  const translationType = getAttributeByName(translation, 'type');
-  if (translationType !== 'unfinished') {
-    //console.log('dbg: already translateed');
-    return;
-  }    
+
+  // ToDo: 
+  // 1) Check if existing translation file
+  // 2) Update all translations that are "unfinished" 
+  // 3) Merge or append any missing translations
+  //    Overwriting *all* is a lot easier.
+  //    Maybe could parse existing file first and create a dictionary map.
+  //
+  // const translationType = getAttributeByName(translation, 'type');
+  // if (translationType !== 'unfinished') {
+  //   //console.log('dbg: already translateed');
+  //   return;
+  // }    
 
   // ToDo: Call Google API
   const translated = source.firstChild.nodeValue + 'xxx';
