@@ -29,7 +29,7 @@ function getElementByName(parent, name) {
   return elementList[0];
 }
 
-function messageTranslate (doc, message) {
+function messageTranslate (message) {
   const source = getElementByName(message, 'source');
   const translation = getElementByName(message, 'translation');
   const translationType = getAttributeByName(translation, 'type');
@@ -40,6 +40,25 @@ function messageTranslate (doc, message) {
 
   console.log(`dbg: translate "${source.firstChild.nodeValue}"`);
 }
+
+function translateTo(inputFileName, language) {
+  console.log('******************************************************');
+  console.log(` Translate to ${language}`);
+  console.log('******************************************************');
+  fs.readFile(inputFileName, 'utf-8', function (err, data) {
+    if (err) {
+      throw err;
+    }
+    const doc = new xmldom().parseFromString(data, 'application/xml');
+    const messageList = doc.getElementsByTagName('message');
+    for (let i = 0; i < messageList.length; i += 1) {
+      const message = messageList[i];
+      messageTranslate(message);
+    }
+  });
+    
+}
+
 
 let _googleTranslateApiKey;
 let _workingFolder;
@@ -67,24 +86,16 @@ program.parse(process.argv);
 
 
 const languageList = _outputLanguageList ? _outputLanguageList.split(',') : [];
-console.log('_outputLanguageList:', _outputLanguageList);
-for(let i = 0; i < languageList.length; i += 1) {
-  console.log(`dbg: language[${i}] = `, languageList[i]);
-}
+// console.log('_outputLanguageList:', _outputLanguageList);
+// for(let i = 0; i < languageList.length; i += 1) {
+//   console.log(`dbg: language[${i}] = `, languageList[i]);
+// }
 
 console.log('ToDo: 1) Iterate <inputLanguage> TS file, 2) For each language translate, 3) Build new language TS file');
 
-
 const inputFileName = 'test/i18n/tsr_en.ts';
-fs.readFile(inputFileName, 'utf-8', function (err, data) {
-  if (err) {
-    throw err;
-  }
-  const doc = new xmldom().parseFromString(data, 'application/xml');
-  const messageList = doc.getElementsByTagName('message');
-  for (let i = 0; i < messageList.length; i += 1) {
-    const message = messageList[i];
-    messageTranslate(doc, message);
-  }
-});
+for(let i = 0; i < languageList.length; i += 1) {
+  const language = languageList[i];
+  translateTo(inputFileName, language);
+}
 
