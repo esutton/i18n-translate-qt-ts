@@ -6,7 +6,6 @@
 
 'use strict';
 
-var async = require('async');
 const fs = require('fs');
 const glob = require('glob-fs')({ gitignore: true });
 const google = require("google-translate");
