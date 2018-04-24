@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/esutton/i18n-translate-qt-ts#readme",
   "dependencies": {
+    "async": "^2.6.0",
     "commander": "^2.15.1",
     "fs": "^0.0.1-security",
     "glob-fs": "^0.1.7",

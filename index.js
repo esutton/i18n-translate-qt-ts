@@ -6,6 +6,7 @@
 
 'use strict';
 
+var async = require('async');
 const fs = require('fs');
 const glob = require('glob-fs')({ gitignore: true });
 const google = require("google-translate");
@@ -15,8 +16,45 @@ var XMLSerializer = require('xmldom').XMLSerializer;
 
 var m_googleTranslate = null; 
 
+const TRANSERR = {
+  NOT_TRANSLATED: 1,
+  IS_URL: 2
+};
 
-function translateText(text, languageSource, languageDestination) {
+// TRANSLATE
+// var translate = function(text, language, callback) {
+
+//   // passthrough if contains HTML
+//   if (/<[a-z][\s\S]*>/i.test(text) == true) {
+//     return callback(TRANSERR.NOT_TRANSLATED, text);
+//   }
+
+//   // it is just a url
+//   if (text.indexOf("http://") == 0 && text.indexOf(" ") < 0) {
+//     return callback(TRANSERR.IS_URL, text);
+//   }
+
+//   if (apiKey) {
+
+//     // fire the google translation
+//     ggl.translate(text, sourceLanguage, language, function(err, translation) {
+
+//       if (err) {
+//         return callback(TRANSERR.NOT_TRANSLATED, text);
+//       }
+
+//       // return the translated text
+//       return callback(null, translation.translatedText);
+//     });
+//   } else {
+
+//     // bypass translation
+//     return callback(null, text);
+//   }
+// };
+
+
+function translateText(text, languageSource, languageDestination, callback) {
 
   console.log(`translateText '${text}' from ${languageSource} to '${languageDestination}'`);
 
@@ -24,15 +62,15 @@ function translateText(text, languageSource, languageDestination) {
   m_googleTranslate.translate(text, languageSource, languageDestination, function(err, translation) {
     if (err) {
       // console.warn('*** translation error: ', err);
-      //return callback(TRANSERR.NOT_TRANSLATED, text);
       console.error('*** Error: translateText failed');
+      return callback(TRANSERR.NOT_TRANSLATED, text);
       return null;
     }
 
     // return the translated text
     console.log(`translateText '${text}' to '${translation.translatedText}'`);
-    // return callback(null, translation.translatedText);
-    return translation.translatedText;
+    return callback(null, translation.translatedText);
+    // return translation.translatedText;
   });
 }
 
@@ -91,18 +129,19 @@ function getTranslationType(message, translateFrom) {
 // translate: 'Error creating PDF file
 // %1'
 // translate: '%1: %2, %3 %4, %5 %6'
-function messageTranslate (doc, message) {
+// function messageTranslate (doc, message, callback) {
+var messageTranslate = function(doc, message, callback) {
   // console.log('dbg: message:', message);
 
 
   const source = getElementByName(message, 'source');
 
 
-  const translation = getElementByName(message, 'translation');
+  const translationNode = getElementByName(message, 'translation');
   console.log(`dbg: messageTranslate source "${source.firstChild.nodeValue}"`);
-  console.log(`dbg: messageTranslate translation "${translation.childNodes[0]}"`);
+  console.log(`dbg: messageTranslate translationNode "${translationNode.childNodes[0]}"`);
 
-  console.log('dbg: messageTranslate translation.firstChild', translation.firstChild);
+  console.log('dbg: messageTranslate translationNode.firstChild', translationNode.firstChild);
 
   const translateFrom = source.firstChild.nodeValue;
 
@@ -110,27 +149,67 @@ function messageTranslate (doc, message) {
   const translationType = getTranslationType(message, translateFrom);
   console.log(`dbg: messageTranslate translationType "${translationType}"`);
   if(translationType === 'finished') {
-    return;
+    // return;
+    return callback(TRANSERR.NOT_TRANSLATED, text);
   }
 
   const languageSource = 'en';
   const languageDestination = 'es';
   const text = source.firstChild.nodeValue;
-  const translated = translateText(text, languageSource, languageDestination);
 
-  // ToDo: Call Google API
-  // const translated = source.firstChild.nodeValue + 'xxx';
-  const textNode = doc.createTextNode(translated);
-  translation.appendChild(textNode);
+  // const translated = translateText(text, languageSource, languageDestination);
+  // translateText(text, languageSource, languageDestination,  function(err, translation) {
 
-  console.log('dbg: translated:', translated)
+  console.log(`translateText '${text}' from ${languageSource} to '${languageDestination}'`);
 
-  // translation.removeAttribute('type');
-  source.firstChild.nodeValue = translated;
-  translation.setAttribute('type','finished');
+  // fire the google translation
+  m_googleTranslate.translate(text, languageSource, languageDestination, function(err, translation) {
+    if (err) {
+      // console.warn('*** translation error: ', err);
+      console.error('*** Error: translateText failed');
+      return callback(TRANSERR.NOT_TRANSLATED, text);
+    }
 
-  console.log(`dbg: translated "${source.firstChild.nodeValue}" to "${translated}"`);
-  // console.log('dbg: message:', message);
+    // return the translated text
+    console.log(`translateText '${text}' to '${translation.translatedText}'`);
+
+    translationNode.setAttribute('typeDbg','translateText!!!');
+    translationNode.setAttribute('result',translation.translatedText);
+
+
+    // translation.removeAttribute('type');
+    // source.firstChild.nodeValue = translated;
+    translationNode.setAttribute('type','finished');
+
+    return callback(null, translation.translatedText);
+    // return translation.translatedText;
+  });
+
+
+
+  // // ToDo: Call Google API
+  // // const translated = source.firstChild.nodeValue + 'xxx';
+  // const textNode = doc.createTextNode(translated);
+  // translation.appendChild(textNode);
+
+  // console.log('dbg: translated:', translated)
+
+  // // translation.removeAttribute('type');
+  // source.firstChild.nodeValue = translated;
+  // translation.setAttribute('type','finished');
+
+  // console.log(`dbg: translated "${source.firstChild.nodeValue}" to "${translated}"`);
+  // // console.log('dbg: message:', message);
+}
+
+function done(xx) {
+  console.log('*****************');
+  console.log('*** D O N E *****');
+  console.log('*****************');
+}
+
+function messageTranslateFunction(message, callback) {
+  
 }
 
 // async
@@ -158,17 +237,75 @@ function translateTo(inputFileName, language) {
     const languageDestination = getAttributeByName(tsElement, 'language');
     console.log('languageDestination:', languageDestination);
 
+    const promises = [];
     const contextList = doc.getElementsByTagName('context');
     for (let i = 0; i < contextList.length; i += 1) {
       const context = contextList[i];
       // console.log(`[${i}] = ${context}`);
       const messageList = context.getElementsByTagName('message');
+      // for (let j = 0; j < messageList.length; j += 1) {
+      //   const message = messageList[j];
+      //   console.log(`[${j}] message = ${message}`);
+      //   messageTranslate(doc, message);
+      // }      
+
+      // translate every message
+      // How do I know when done?
+      // https://stackoverflow.com/questions/10776891/how-to-know-when-finished
+      // async.mapSeries(messageList, function(message, done) { 
+      //   // console.log(`dbg: doc = ${doc}`);
+      //   console.log(`dbg: message = ${message}`);
+      //   messageTranslate(doc, message, function(err, translation) {
+      //     console.log('dbg: err', err);
+      //     console.log('dbg: translation', translation);
+      //     message.setAttribute('typeDbg','hello');
+      //   });
+      //   console.log('yyyyyyy D O N E yyyyy');
+      // }, done);
+
+      // Promise.all(messageList.map(message))
+      // .then(function (results) {
+      //   //  here we got the results in the same order of array
+      //   console.log(`message = ${message}`);
+
+      // } .catch(function (err) {
+      //     //  do something with error if your function throws
+      // }      
+
       for (let j = 0; j < messageList.length; j += 1) {
         const message = messageList[j];
         console.log(`[${j}] message = ${message}`);
-        messageTranslate(doc, message);
-      }      
-    }
+
+        promises.push(
+          new Promise((resolve, reject) => {
+              messageTranslate(doc, message, function(err, translation) {
+                console.log('aaaaaaaaaaaaaaaaaaaa');
+                console.log('dbg: err', err);
+                console.log('dbg: translation', translation);
+                message.setAttribute('typeDbg','hello');
+                if (err) reject(err);
+                else resolve();
+              });
+          })
+        );
+
+        // messageTranslate(doc, message);
+      }   
+
+      console.log('xxx D O N E xxxx');
+    } // end for context
+
+    Promise.all(promises).then(() => {
+      console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx done !!!!!!!!');
+      const xml = new XMLSerializer().serializeToString(doc);
+      fs.writeFile(outputFilename, xml, function(err) {
+        if(err) {
+            return console.log(err);
+        }
+      });       
+    }).catch(err => console.log('errorerrorerrorerrorerror', err));
+
+    console.log('*** D O N E *****');
 
     // const messageList = doc.getElementsByTagName('message');
     // for (let i = 0; i < messageList.length; i += 1) {
@@ -176,12 +313,12 @@ function translateTo(inputFileName, language) {
     //   // console.log(`[${i}] = ${message}`);
     //   messageTranslate(doc, message);
     // }
-    const xml = new XMLSerializer().serializeToString(doc);
-    fs.writeFile(outputFilename, xml, function(err) {
-      if(err) {
-          return console.log(err);
-      }
-    }); 
+    // const xml = new XMLSerializer().serializeToString(doc);
+    // fs.writeFile(outputFilename, xml, function(err) {
+    //   if(err) {
+    //       return console.log(err);
+    //   }
+    // }); 
 
   });
     

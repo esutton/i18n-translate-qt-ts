@@ -4,8 +4,15 @@
   <context>
       <name>QPushButton</name>
       <message>
-          <source>Hello</source>
+          <source>Hello mother</source>
           <translation type="unfinished"></translation>          
       </message>
   </context>
+  <context>
+      <name>QPushButton</name>
+      <message>
+          <source>Goodbye father</source>
+          <translation type="unfinished"></translation>          
+      </message>
+  </context>  
 </TS>
