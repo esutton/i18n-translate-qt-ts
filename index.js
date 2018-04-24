@@ -15,7 +15,7 @@ var XMLSerializer = require('xmldom').XMLSerializer;
 function getAttributeByName(element, name) {
   const attribute = element.getAttributeNode(name);
   if(!attribute) {
-    return '';
+    return null;
   }
   return attribute.value;
 }
@@ -23,7 +23,8 @@ function getAttributeByName(element, name) {
 function getElementByName(parent, name) {
   const elementList = parent.getElementsByTagName(name);
   if (!elementList.length) {
-    return '';
+    console.warn('*** tagName not found:', name);
+    return null;
   }
   if (elementList.length > 1) {
     console.warn(`*** Found ${elementList.length} elements matching name: ${name}`)
@@ -31,22 +32,50 @@ function getElementByName(parent, name) {
   return elementList[0];
 }
 
+// If no type is set, the message is "finished".
+// http://doc.qt.io/qt-5/linguist-ts-file-format.html
+//
+// Note: translationType applies only to a pre-existing translation.
+// For example, if a human reviewed translation, Google Translate should leave it alone.
+//
+// returns finished or unfinished|vanished|obsolete
+function getTranslationType(message) {
+  const translation = getElementByName(message, 'translation');
+  if(!translation) {
+    return 'finished';
+  }
+  const translationType = getAttributeByName(translation, 'type');
+  if(!translationType) {
+    return 'finished';
+  }
+  return translationType;
+}
+
+// ToDo: Handle XML special characters '&lt;'
+// ToDo: Split by %
+// ToDo: If all % args, then skip translate
+// ToDo: If all numbers, then skip translate
+//
+// Challenges:
+// -------------------------
+// translate: '&lt;- Back'
+// translate: 'Send To:  %1'
+// translate: '-100'
+// translate: '+100'
+// translate: 'Attachment(s): %n'
+// translate: 'Error creating PDF file
+// %1'
+// translate: '%1: %2, %3 %4, %5 %6'
 function messageTranslate (doc, message) {
   const source = getElementByName(message, 'source');
+
   const translation = getElementByName(message, 'translation');
 
-  // ToDo: 
-  // 1) Check if existing translation file
-  // 2) Update all translations that are "unfinished" 
-  // 3) Merge or append any missing translations
-  //    Overwriting *all* is a lot easier.
-  //    Maybe could parse existing file first and create a dictionary map.
-  //
-  // const translationType = getAttributeByName(translation, 'type');
-  // if (translationType !== 'unfinished') {
-  //   //console.log('dbg: already translateed');
-  //   return;
-  // }    
+  // translationType applies only to a pre-existing translation
+  const translationType = getTranslationType(message);
+  if(translationType !== 'finished') {
+    console.log(`translate: '${source.childNodes[0]}'`);
+  }
 
   // ToDo: Call Google API
   const translated = source.firstChild.nodeValue + 'xxx';
@@ -76,11 +105,25 @@ function translateTo(inputFileName, language) {
       throw err;
     }
     const doc = new xmldom().parseFromString(data, 'application/xml');
-    const messageList = doc.getElementsByTagName('message');
-    for (let i = 0; i < messageList.length; i += 1) {
-      const message = messageList[i];
-      messageTranslate(doc, message);
+
+
+    const contextList = doc.getElementsByTagName('context');
+    for (let i = 0; i < contextList.length; i += 1) {
+      const context = contextList[i];
+      // console.log(`[${i}] = ${context}`);
+      const messageList = context.getElementsByTagName('message');
+      for (let i = 0; i < messageList.length; i += 1) {
+        const message = messageList[i];
+        messageTranslate(doc, message);
+      }      
     }
+
+    // const messageList = doc.getElementsByTagName('message');
+    // for (let i = 0; i < messageList.length; i += 1) {
+    //   const message = messageList[i];
+    //   // console.log(`[${i}] = ${message}`);
+    //   messageTranslate(doc, message);
+    // }
     const xml = new XMLSerializer().serializeToString(doc);
     fs.writeFile(outputFilename, xml, function(err) {
       if(err) {
@@ -135,7 +178,9 @@ if(!languageList.length) {
 
 for(let i = 0; i < languageList.length; i += 1) {
   const language = languageList[i];
+  console.log('dbg translate:', language);
   const xml = translateTo(tsFileInputLanguage, language);
+  console.log('dbg Stop at one for debugging');
   return; // Stop at one for debugging
 }
 

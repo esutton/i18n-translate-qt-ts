@@ -56,6 +56,19 @@ A C++ based cross-platform SDK supporting desktops, embedded, Android, and iOS.
 </TS>
 ````
 
+# Development
+````
+git clone https://github.com/esutton/i18n-translate-qt-ts.git i18n-translate-qt-ts/source
+cd 18n-translate-qt-ts/source
+yarn
+npm install -g
+
+export API_KEY=AIzy0Vj...
+
+# Execute:
+node index.js ${API_KEY} test/i18n en cs,da,de,es
+````
+
 # ToDo:
 
 1) Iterate through test/i8n/tsr_en.ts
