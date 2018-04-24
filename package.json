@@ -34,7 +34,7 @@
     "commander": "^2.15.1",
     "fs": "^0.0.1-security",
     "glob-fs": "^0.1.7",
-    "google-translate": "^2.0.5",
+    "google-translate": "^2.1.0",
     "xmldom": "^0.1.27"
   }
 }

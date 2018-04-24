@@ -56,17 +56,23 @@ A C++ based cross-platform SDK supporting desktops, embedded, Android, and iOS.
 </TS>
 ````
 
-# Development
+# Development - Getting Started
 ````
 git clone https://github.com/esutton/i18n-translate-qt-ts.git i18n-translate-qt-ts/source
 cd 18n-translate-qt-ts/source
 yarn
 npm install -g
 
+# Check global installed packages
+npm list -g --depth=0
+
+# Use environment variable to store your API key
 export API_KEY=AIzy0Vj...
 
-# Execute:
-node index.js ${API_KEY} test/i18n en cs,da,de,es
+# Generate German (de.ts) and Spanish (es.ts) translations 
+# from English (*_en.ts) file 
+# found in folder test/i18n..
+node index.js ${API_KEY} test/i18n en de,es
 ````
 
 # ToDo:

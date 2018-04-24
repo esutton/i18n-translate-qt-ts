@@ -8,6 +8,7 @@
 
 const fs = require('fs');
 const glob = require('glob-fs')({ gitignore: true });
+const google = require("google-translate");
 const program = require('commander');
 const xmldom = require('xmldom').DOMParser;
 var XMLSerializer = require('xmldom').XMLSerializer;
@@ -175,6 +176,28 @@ if(!languageList.length) {
   console.error(`*** Error found no output languages`)
   return;
 }
+
+
+var googleTranslate = google(_googleTranslateApiKey);
+
+// fire the google translation
+const text = 'Hello mother';
+const languageSource = 'en';
+const languageDestination = 'es';
+googleTranslate.translate(text, languageSource, languageDestination, function(err, translation) {
+
+  if (err) {
+    console.warn('*** translation error: ', err);
+    //return callback(TRANSERR.NOT_TRANSLATED, text);
+    return;
+  }
+
+  // return the translated text
+  console.log('translation:', translation.translatedText);
+  // return callback(null, translation.translatedText);
+});
+
+return; // Stop at one for debugging
 
 for(let i = 0; i < languageList.length; i += 1) {
   const language = languageList[i];
