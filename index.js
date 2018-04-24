@@ -184,22 +184,6 @@ var messageTranslate = function(doc, message, callback) {
     translationNode.setAttribute('type','finished');
     return callback(null, translation.translatedText);
   });
-
-
-
-  // // ToDo: Call Google API
-  // // const translated = source.firstChild.nodeValue + 'xxx';
-  // const textNode = doc.createTextNode(translated);
-  // translation.appendChild(textNode);
-
-  // console.log('dbg: translated:', translated)
-
-  // // translation.removeAttribute('type');
-  // source.firstChild.nodeValue = translated;
-  // translation.setAttribute('type','finished');
-
-  // console.log(`dbg: translated "${source.firstChild.nodeValue}" to "${translated}"`);
-  // // console.log('dbg: message:', message);
 }
 
 // async
@@ -231,37 +215,7 @@ function translateTo(inputFileName, language) {
     const contextList = doc.getElementsByTagName('context');
     for (let i = 0; i < contextList.length; i += 1) {
       const context = contextList[i];
-      // console.log(`[${i}] = ${context}`);
       const messageList = context.getElementsByTagName('message');
-      // for (let j = 0; j < messageList.length; j += 1) {
-      //   const message = messageList[j];
-      //   console.log(`[${j}] message = ${message}`);
-      //   messageTranslate(doc, message);
-      // }      
-
-      // translate every message
-      // How do I know when done?
-      // https://stackoverflow.com/questions/10776891/how-to-know-when-finished
-      // async.mapSeries(messageList, function(message, done) { 
-      //   // console.log(`dbg: doc = ${doc}`);
-      //   console.log(`dbg: message = ${message}`);
-      //   messageTranslate(doc, message, function(err, translation) {
-      //     console.log('dbg: err', err);
-      //     console.log('dbg: translation', translation);
-      //     message.setAttribute('typeDbg','hello');
-      //   });
-      //   console.log('yyyyyyy D O N E yyyyy');
-      // }, done);
-
-      // Promise.all(messageList.map(message))
-      // .then(function (results) {
-      //   //  here we got the results in the same order of array
-      //   console.log(`message = ${message}`);
-
-      // } .catch(function (err) {
-      //     //  do something with error if your function throws
-      // }      
-
       for (let j = 0; j < messageList.length; j += 1) {
         const message = messageList[j];
         promises.push(
@@ -276,8 +230,6 @@ function translateTo(inputFileName, language) {
               });
           })
         );
-
-        // messageTranslate(doc, message);
       }   
     } // end for context
 
@@ -289,21 +241,6 @@ function translateTo(inputFileName, language) {
         }
       });       
     }).catch(err => console.log('errorerrorerrorerrorerror', err));
-
-    // console.log('*** D O N E *****');
-
-    // const messageList = doc.getElementsByTagName('message');
-    // for (let i = 0; i < messageList.length; i += 1) {
-    //   const message = messageList[i];
-    //   // console.log(`[${i}] = ${message}`);
-    //   messageTranslate(doc, message);
-    // }
-    // const xml = new XMLSerializer().serializeToString(doc);
-    // fs.writeFile(outputFilename, xml, function(err) {
-    //   if(err) {
-    //       return console.log(err);
-    //   }
-    // }); 
 
   });
     
