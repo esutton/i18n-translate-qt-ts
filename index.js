@@ -177,22 +177,13 @@ var messageTranslate = function(doc, message, callback) {
     if(textNode == null ) {
       textNode = doc.createTextNode(translation.translatedText);
       translationNode.appendChild(textNode);
-      console.log('createTextNode translationNode:', translationNode);
     } else {
       textNode.nodeValue = translation.translatedText;  
-      console.log('textNode.nodeValue :', textNode.nodeValue);
     }
 
-    translationNode.setAttribute('typeDbg','translateText!!!');
-    translationNode.setAttribute('result',translation.translatedText);
-
-
-    // translation.removeAttribute('type');
-    // source.firstChild.nodeValue = translated;
+    // translationNode.removeAttribute('type');
     translationNode.setAttribute('type','finished');
-
     return callback(null, translation.translatedText);
-    // return translation.translatedText;
   });
 
 
@@ -210,16 +201,6 @@ var messageTranslate = function(doc, message, callback) {
 
   // console.log(`dbg: translated "${source.firstChild.nodeValue}" to "${translated}"`);
   // // console.log('dbg: message:', message);
-}
-
-function done(xx) {
-  console.log('*****************');
-  console.log('*** D O N E *****');
-  console.log('*****************');
-}
-
-function messageTranslateFunction(message, callback) {
-  
 }
 
 // async
@@ -284,29 +265,24 @@ function translateTo(inputFileName, language) {
 
       for (let j = 0; j < messageList.length; j += 1) {
         const message = messageList[j];
-        console.log(`[${j}] message = ${message}`);
-
         promises.push(
           new Promise((resolve, reject) => {
               messageTranslate(doc, message, function(err, translation) {
-                console.log('aaaaaaaaaaaaaaaaaaaa');
-                console.log('dbg: err', err);
-                console.log('dbg: translation', translation);
-                message.setAttribute('typeDbg','hello');
-                if (err) reject(err);
-                else resolve();
+                if (err) {
+                  console.error('** Error messageTranslate failed err', err);
+                  reject(err); 
+                } else {
+                  resolve();
+                }
               });
           })
         );
 
         // messageTranslate(doc, message);
       }   
-
-      console.log('xxx D O N E xxxx');
     } // end for context
 
     Promise.all(promises).then(() => {
-      console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx done !!!!!!!!');
       const xml = new XMLSerializer().serializeToString(doc);
       fs.writeFile(outputFilename, xml, function(err) {
         if(err) {
@@ -315,7 +291,7 @@ function translateTo(inputFileName, language) {
       });       
     }).catch(err => console.log('errorerrorerrorerrorerror', err));
 
-    console.log('*** D O N E *****');
+    // console.log('*** D O N E *****');
 
     // const messageList = doc.getElementsByTagName('message');
     // for (let i = 0; i < messageList.length; i += 1) {
