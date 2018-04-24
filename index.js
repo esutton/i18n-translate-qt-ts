@@ -173,6 +173,16 @@ var messageTranslate = function(doc, message, callback) {
     // return the translated text
     console.log(`translateText '${text}' to '${translation.translatedText}'`);
 
+    let textNode = translationNode.firstChild;
+    if(textNode == null ) {
+      textNode = doc.createTextNode(translation.translatedText);
+      translationNode.appendChild(textNode);
+      console.log('createTextNode translationNode:', translationNode);
+    } else {
+      textNode.nodeValue = translation.translatedText;  
+      console.log('textNode.nodeValue :', textNode.nodeValue);
+    }
+
     translationNode.setAttribute('typeDbg','translateText!!!');
     translationNode.setAttribute('result',translation.translatedText);
 
