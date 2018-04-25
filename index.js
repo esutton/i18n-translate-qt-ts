@@ -171,6 +171,7 @@ function translateQtTsFile(inputFileName, language) {
       }   
     } // end for context
 
+    // When all strings are translated, write the translations to file
     Promise.all(promises).then(() => {
       const xml = new XMLSerializer().serializeToString(doc);
       fs.writeFile(outputFilename, xml, function(err) {
@@ -224,6 +225,8 @@ if(!languageList.length) {
   console.error(`*** Error found no output languages`)
   return;
 }
+
+console.log('inputFileList:', inputFileList);
 
 m_googleTranslate = google(_googleTranslateApiKey);
 
