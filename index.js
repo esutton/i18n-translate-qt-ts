@@ -3,7 +3,6 @@
 // See: https://medium.freecodecamp.org/writing-command-line-applications-in-nodejs-2cf8327eee2
 // https://github.com/tj/commander.js
 
-
 'use strict';
 
 const fs = require('fs');
@@ -14,64 +13,6 @@ const xmldom = require('xmldom').DOMParser;
 var XMLSerializer = require('xmldom').XMLSerializer;
 
 var m_googleTranslate = null; 
-
-const TRANSERR = {
-  NOT_TRANSLATED: 1,
-  IS_URL: 2
-};
-
-// TRANSLATE
-// var translate = function(text, language, callback) {
-
-//   // passthrough if contains HTML
-//   if (/<[a-z][\s\S]*>/i.test(text) == true) {
-//     return callback(TRANSERR.NOT_TRANSLATED, text);
-//   }
-
-//   // it is just a url
-//   if (text.indexOf("http://") == 0 && text.indexOf(" ") < 0) {
-//     return callback(TRANSERR.IS_URL, text);
-//   }
-
-//   if (apiKey) {
-
-//     // fire the google translation
-//     ggl.translate(text, sourceLanguage, language, function(err, translation) {
-
-//       if (err) {
-//         return callback(TRANSERR.NOT_TRANSLATED, text);
-//       }
-
-//       // return the translated text
-//       return callback(null, translation.translatedText);
-//     });
-//   } else {
-
-//     // bypass translation
-//     return callback(null, text);
-//   }
-// };
-
-
-function translateText(text, languageSource, languageDestination, callback) {
-
-  console.log(`translateText '${text}' from ${languageSource} to '${languageDestination}'`);
-
-  // fire the google translation
-  m_googleTranslate.translate(text, languageSource, languageDestination, function(err, translation) {
-    if (err) {
-      // console.warn('*** translation error: ', err);
-      console.error('*** Error: translateText failed');
-      return callback(TRANSERR.NOT_TRANSLATED, text);
-      return null;
-    }
-
-    // return the translated text
-    console.log(`translateText '${text}' to '${translation.translatedText}'`);
-    return callback(null, translation.translatedText);
-    // return translation.translatedText;
-  });
-}
 
 function getAttributeByName(element, name) {
   const attribute = element.getAttributeNode(name);
@@ -113,6 +54,8 @@ function getTranslationType(message, translateFrom) {
   return translationType;
 }
 
+// Translate text from message/source message/translation  
+//
 // ToDo: Handle XML special characters '&lt;'
 // ToDo: Split by %
 // ToDo: If all % args, then skip translate
@@ -125,16 +68,12 @@ function getTranslationType(message, translateFrom) {
 // translate: '-100'
 // translate: '+100'
 // translate: 'Attachment(s): %n'
-// translate: 'Error creating PDF file
-// %1'
+// translate: 'Error creating PDF file %1'
 // translate: '%1: %2, %3 %4, %5 %6'
-// function messageTranslate (doc, message, callback) {
+//
 var messageTranslate = function(doc, message, callback) {
   // console.log('dbg: message:', message);
-
-
   const source = getElementByName(message, 'source');
-
 
   const translationNode = getElementByName(message, 'translation');
   console.log(`dbg: messageTranslate source "${source.firstChild.nodeValue}"`);
@@ -156,21 +95,18 @@ var messageTranslate = function(doc, message, callback) {
   const languageDestination = 'es';
   const text = source.firstChild.nodeValue;
 
-  // const translated = translateText(text, languageSource, languageDestination);
-  // translateText(text, languageSource, languageDestination,  function(err, translation) {
-
-  console.log(`translateText '${text}' from ${languageSource} to '${languageDestination}'`);
+  console.log(`translate text '${text}' from ${languageSource} to '${languageDestination}'`);
 
   // fire the google translation
   m_googleTranslate.translate(text, languageSource, languageDestination, function(err, translation) {
     if (err) {
       // console.warn('*** translation error: ', err);
-      console.error('*** Error: translateText failed');
+      console.error(`*** Error: google translate failed for: "${text}"`);
       return callback(TRANSERR.NOT_TRANSLATED, text);
     }
 
     // return the translated text
-    console.log(`translateText '${text}' to '${translation.translatedText}'`);
+    console.log(`translated '${text}' to '${translation.translatedText}'`);
 
     let textNode = translationNode.firstChild;
     if(textNode == null ) {
@@ -186,8 +122,9 @@ var messageTranslate = function(doc, message, callback) {
   });
 }
 
-// async
-function translateTo(inputFileName, language) {
+// Translate all context's found in Qt *.ts file
+// Translate text from message/source message/translation  
+function translateQtTsFile(inputFileName, language) {
   console.log('******************************************************');
   console.log(` Translate to ${language}`);
   console.log('******************************************************');
@@ -220,6 +157,7 @@ function translateTo(inputFileName, language) {
         const message = messageList[j];
         promises.push(
           new Promise((resolve, reject) => {
+              // Translate text from message/source message/translation  
               messageTranslate(doc, message, function(err, translation) {
                 if (err) {
                   console.error('** Error messageTranslate failed err', err);
@@ -292,7 +230,7 @@ m_googleTranslate = google(_googleTranslateApiKey);
 for(let i = 0; i < languageList.length; i += 1) {
   const language = languageList[i];
   console.log('dbg translate:', language);
-  const xml = translateTo(tsFileInputLanguage, language);
+  const xml = translateQtTsFile(tsFileInputLanguage, language);
   console.log('dbg Stop at one for debugging');
   return; // Stop at one for debugging
 }
