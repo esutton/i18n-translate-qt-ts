@@ -77,4 +77,4 @@ export API_KEY=AIzy0Vj...
 # found in folder test/i18n..
 
 node index.js ${API_KEY} test/simple/unfinished en
-````
+```

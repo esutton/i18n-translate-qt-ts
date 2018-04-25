@@ -15,6 +15,12 @@ var XMLSerializer = require('xmldom').XMLSerializer;
 
 const Debug = true;
 
+const TRANSERR = {
+  ALREADY_TRANSLATED: 0,
+  NOT_TRANSLATED: 1,
+  IS_URL: 2
+};
+
 var m_googleTranslate = null;
 
 function getAttributeByName(element, name) {
@@ -90,17 +96,19 @@ var messageTranslate =
   //     translationNode.firstChild);
 
   const translateFrom = source.firstChild.nodeValue;
+  const text = source.firstChild.nodeValue;
 
   // translationType applies only to a pre-existing translation
   const translationType = getTranslationType(message, translateFrom);
   // console.log(`dbg: messageTranslate translationType "${translationType}"`);
   if (translationType === 'finished') {
     // return;
-    return callback(TRANSERR.NOT_TRANSLATED, text);
+    console.log(
+      `finished skipping '${text}'`);
+    return callback(TRANSERR.ALREADY_TRANSLATED, text);
   }
 
   const languageSource = 'en';
-  const text = source.firstChild.nodeValue;
 
   console.log(
       `translate text '${text}' from ${languageSource} to '${targetLanguage}'`);
@@ -126,6 +134,8 @@ var messageTranslate =
         }
 
         // translationNode.removeAttribute('type');
+        // translationNode.setAttribute('typeXXX', 'finished');
+        translationNode.removeAttribute('typeXXX');
         translationNode.setAttribute('type', 'finished');
         return callback(null, translation.translatedText);
       });
@@ -191,7 +201,7 @@ function translateQtTsFile(inputFileName, language) {
             }
           });
         })
-        .catch(err => console.log('errorerrorerrorerrorerror', err));
+        .catch(err => console.log(`*** Error Promise.all writing : ${outputFilename}\n${err}`));
   });
 }
 
