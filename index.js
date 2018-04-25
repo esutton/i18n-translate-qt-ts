@@ -69,7 +69,6 @@ function getElementText(node) {
 function getTranslationType(message, sourceText) {
   const translation = getElementByName(message, 'translation');
   if (!translation) {
-    console.warn(`*** translation node missing for: ${sourceText}`)
     return 'unfinished';
   }
 
@@ -159,7 +158,6 @@ var messageTranslate =
         // return the translated text
         console.log(`translated '${sourceText}' to '${translation.translatedText}'`);
 
-        console.log('translationNode:', translationNode);
         if (translationNode === null ) {
           translationNode = doc.createElement('translation');
           message.appendChild(translationNode);
