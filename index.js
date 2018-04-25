@@ -13,6 +13,8 @@ const program = require('commander');
 const xmldom = require('xmldom').DOMParser;
 var XMLSerializer = require('xmldom').XMLSerializer;
 
+const Debug = true;
+
 var m_googleTranslate = null;
 
 function getAttributeByName(element, name) {
@@ -80,19 +82,18 @@ var messageTranslate =
   const source = getElementByName(message, 'source');
 
   const translationNode = getElementByName(message, 'translation');
-  console.log(`dbg: messageTranslate source "${source.firstChild.nodeValue}"`);
-  console.log(`dbg: messageTranslate translationNode "${
-      translationNode.childNodes[0]}"`);
-
-  console.log(
-      'dbg: messageTranslate translationNode.firstChild',
-      translationNode.firstChild);
+  // console.log(`dbg: messageTranslate source "${source.firstChild.nodeValue}"`);
+  // console.log(`dbg: messageTranslate translationNode "${
+  //     translationNode.childNodes[0]}"`);
+  // console.log(
+  //     'dbg: messageTranslate translationNode.firstChild',
+  //     translationNode.firstChild);
 
   const translateFrom = source.firstChild.nodeValue;
 
   // translationType applies only to a pre-existing translation
   const translationType = getTranslationType(message, translateFrom);
-  console.log(`dbg: messageTranslate translationType "${translationType}"`);
+  // console.log(`dbg: messageTranslate translationType "${translationType}"`);
   if (translationType === 'finished') {
     // return;
     return callback(TRANSERR.NOT_TRANSLATED, text);
@@ -147,7 +148,7 @@ function translateQtTsFile(inputFileName, language) {
   }
   // const outputFilename = `${inputFileName.substring(0,
   // pos)}_${language}_output.ts`;
-  const outputFilename = `${inputFileName}_.ts.out`;
+  const outputFilename = `${inputFileName}`;
 
   fs.readFile(inputFileName, 'utf-8', function(err, data) {
     if (err) {
