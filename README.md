@@ -3,17 +3,16 @@ Automatically translates Qt Linguist TS file to different languages via Google T
 
 Usage:
 ````
-i18n-translate-qt-ts <googleTranslateApiKey> <workingFolder> <inputLanguage> <outputLanguageList>
+i18n-translate-qt-ts <googleTranslateApiKey> <workingFolder> <inputLanguage>
 ````
 
-* <googleTranslateApiKey> - Your Google Translate API key
-* <workingFolder> - Input and output folder containing your input language TS file
-* <inputLanguage> - Input language abbreviation, for example, en
-* <outputLanguageList> - One or more output language abbreviation separated by comma
+* ````<googleTranslateApiKey>```` - Your commercial Google Translate API key
+* ````<workingFolder>```` - Folder containing your Qt *.ts files
+* ````<sourceLanguage>```` - Source strings language abbreviation, for example, 'en'
 
 Example:
 ````
-i18n-translate-qt-ts myLongSecretApiKey app/i18n en cs,da,de,es,fr,nl,pl,sv
+i18n-translate-qt-ts myLongSecretApiKey app/i18n en
 ````
 
 # [Qt](https://www.qt.io/)
@@ -26,11 +25,14 @@ A C++ based cross-platform SDK supporting desktops, embedded, Android, and iOS.
 ### [Qt Linguist TS File Format](http://doc.qt.io/qt-5/linguist-ts-file-format.html)
 * http://doc.qt.io/qt-5/linguist-ts-file-format.html
 
-#### Base Language en
+#### Example
+
+##### Before Translation
+File: myproject_es.ts
 ````
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0" language="en">
+<TS version="2.0" language="es">
   <context>
       <name>QPushButton</name>
       <message>
@@ -41,7 +43,8 @@ A C++ based cross-platform SDK supporting desktops, embedded, Android, and iOS.
 </TS>
 ````
 
-#### Translation es
+##### After Translation
+File: myproject_es.ts
 ````
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
@@ -49,8 +52,8 @@ A C++ based cross-platform SDK supporting desktops, embedded, Android, and iOS.
   <context>
       <name>QPushButton</name>
       <message>
-          <source>Hello</source>
-          <translation>Hola</translation>
+          <source>Hello mother</source>
+          <translation type="finished">Hola madre</translation>          
       </message>
   </context>
 </TS>
@@ -72,15 +75,6 @@ export API_KEY=AIzy0Vj...
 # Generate German (de.ts) and Spanish (es.ts) translations 
 # from English (*_en.ts) file 
 # found in folder test/i18n..
-node index.js ${API_KEY} test/i18n en de,es
+
+node index.js ${API_KEY} test/simple/unfinished en
 ````
-
-# ToDo:
-
-1) Iterate through test/i8n/tsr_en.ts
-2) Get all /message/source/ text
-3) Replace /message/translation/ text
-
-See:
-* https://github.com/jindw/xmldom/issues/99
-* 
