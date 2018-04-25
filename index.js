@@ -15,13 +15,17 @@ var XMLSerializer = require('xmldom').XMLSerializer;
 
 const Debug = true;
 
-const TRANSERR = {
-  ALREADY_TRANSLATED: 0,
-  NOT_TRANSLATED: 1,
-  IS_URL: 2
+const TranslateStatus = {
+  IsUrl: -2,
+  IsHtml: -1,
+  AlreadyTranslated: 0,
+  TranslateFailed: 1,
 };
 
-var m_googleTranslate = null;
+var _googleTranslate = null;
+let _googleTranslateApiKey;
+let _workingFolder;
+let _sourceLanguage;
 
 function getAttributeByName(element, name) {
   const attribute = element.getAttributeNode(name);
@@ -34,7 +38,7 @@ function getAttributeByName(element, name) {
 function getElementByName(parent, name) {
   const elementList = parent.getElementsByTagName(name);
   if (!elementList.length) {
-    console.warn('*** tagName not found:', name);
+    console.warn(`*** tagName not found: '${name}'`);
     return null;
   }
   if (elementList.length > 1) {
@@ -42,6 +46,16 @@ function getElementByName(parent, name) {
         `*** Found ${elementList.length} elements matching name: ${name}`)
   }
   return elementList[0];
+}
+
+function getElementText(node) {
+  if(!node) {
+    return '';
+  }
+  if(!node.firstChild) {
+    return '';
+  }
+  return node.firstChild.nodeValue;
 }
 
 // If no type is set, the message is "finished".
@@ -52,12 +66,23 @@ function getElementByName(parent, name) {
 // it alone.
 //
 // returns finished or unfinished|vanished|obsolete
-function getTranslationType(message, translateFrom) {
+function getTranslationType(message, sourceText) {
   const translation = getElementByName(message, 'translation');
   if (!translation) {
-    console.warn(`*** translation node missing for: ${translateFrom}`)
+    console.warn(`*** translation node missing for: ${sourceText}`)
     return 'unfinished';
   }
+
+  if (!sourceText) {
+    console.warn(`*** translation has no source text to translate: ${sourceText}`)
+    return 'finished';
+  }
+
+  if(sourceText.length > 0 && translation.firstChild === null) {
+    // If sourceText exists but translation is missing
+    return 'unfinished';
+  }
+
   const translationType = getAttributeByName(translation, 'type');
   if (!translationType) {
     return 'finished';
@@ -87,7 +112,7 @@ var messageTranslate =
   // console.log('dbg: message:', message);
   const source = getElementByName(message, 'source');
 
-  const translationNode = getElementByName(message, 'translation');
+  let translationNode = getElementByName(message, 'translation');
   // console.log(`dbg: messageTranslate source "${source.firstChild.nodeValue}"`);
   // console.log(`dbg: messageTranslate translationNode "${
   //     translationNode.childNodes[0]}"`);
@@ -95,35 +120,51 @@ var messageTranslate =
   //     'dbg: messageTranslate translationNode.firstChild',
   //     translationNode.firstChild);
 
-  const translateFrom = source.firstChild.nodeValue;
-  const text = source.firstChild.nodeValue;
+  const sourceText = getElementText(source);
 
   // translationType applies only to a pre-existing translation
-  const translationType = getTranslationType(message, translateFrom);
+  const translationType = getTranslationType(message, sourceText);
   // console.log(`dbg: messageTranslate translationType "${translationType}"`);
   if (translationType === 'finished') {
     // return;
     console.log(
-      `finished skipping '${text}'`);
-    return callback(TRANSERR.ALREADY_TRANSLATED, text);
+      `finished skipping '${sourceText}'`);
+    return callback(TranslateStatus.AlreadyTranslated, sourceText);
   }
 
-  const languageSource = 'en';
+  // passthrough if contains HTML
+  if (/<[a-z][\s\S]*>/i.test(sourceText) == true) {
+    console.warn(`'*** Warning: text detected as html: ${sourceText}`);
+    return callback(TranslateStatus.IsHtml, sourceText);
+  }
 
-  console.log(
-      `translate text '${text}' from ${languageSource} to '${targetLanguage}'`);
+  // it is just a url
+  if (sourceText.indexOf("http://") == 0 && sourceText.indexOf(" ") < 0) {
+    console.warn(`'*** Warning: text detected as url: ${sourceText}`);
+    return callback(TranslateStatus.IsUrl, sourceText);
+  }
+
+  // console.log(
+  //     `translate text '${sourceText}' from ${_sourceLanguage} to '${targetLanguage}'`);
 
   // fire the google translation
-  m_googleTranslate.translate(
-      text, languageSource, targetLanguage, function(err, translation) {
+  _googleTranslate.translate(
+      sourceText, _sourceLanguage, targetLanguage, function(err, translation) {
         if (err) {
           // console.warn('*** translation error: ', err);
-          console.error(`*** Error: google translate failed for: "${text}"`);
-          return callback(TRANSERR.NOT_TRANSLATED, text);
+          console.error(`*** Error: google translate failed for: "${sourceText}"`);
+          return callback(TranslateStatus.TranslateFailed, sourceText);
         }
 
         // return the translated text
-        console.log(`translated '${text}' to '${translation.translatedText}'`);
+        console.log(`translated '${sourceText}' to '${translation.translatedText}'`);
+
+        console.log('translationNode:', translationNode);
+        if (translationNode === null ) {
+          translationNode = doc.createElement('translation');
+          message.appendChild(translationNode);
+          translationNode.setAttribute('type', 'unfinished');
+        }
 
         let textNode = translationNode.firstChild;
         if (textNode == null) {
@@ -180,7 +221,7 @@ function translateQtTsFile(inputFileName, language) {
           // Translate text from message/source message/translation
           messageTranslate(
               targetLanguage, doc, message, function(err, translation) {
-                if (err) {
+                if (err > 0) {
                   console.error('** Error messageTranslate failed err', err);
                   reject(err);
                 } else {
@@ -204,11 +245,6 @@ function translateQtTsFile(inputFileName, language) {
         .catch(err => console.log(`*** Error Promise.all writing : ${outputFilename}\n${err}`));
   });
 }
-
-
-let _googleTranslateApiKey;
-let _workingFolder;
-let _sourceLanguage;
 
 program.version('0.0.1')
     .description('Use Google Translate API to translate Qt Linguist TS files')
@@ -236,7 +272,7 @@ if (!tsFileList.length) {
   return;
 }
 
-m_googleTranslate = google(_googleTranslateApiKey);
+_googleTranslate = google(_googleTranslateApiKey);
 
 console.log('sourceLanguage:', _sourceLanguage);
 for (let i = 0; i < tsFileList.length; i += 1) {
