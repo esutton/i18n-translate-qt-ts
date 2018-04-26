@@ -106,8 +106,8 @@ function getTranslationType(message, sourceText) {
 // translate: 'Error creating PDF file %1'
 // translate: '%1: %2, %3 %4, %5 %6'
 //
-var messageTranslate =
-    function(targetLanguage, doc, message, callback) {
+function messageTranslate(targetLanguage, doc, message, callback) {
+  let translateApiCallCount = 0;
   // console.log('dbg: message:', message);
   const source = getElementByName(message, 'source');
 
@@ -125,34 +125,45 @@ var messageTranslate =
   const translationType = getTranslationType(message, sourceText);
   // console.log(`dbg: messageTranslate translationType "${translationType}"`);
   if (translationType === 'finished') {
-    // return;
-    console.log(
-      `finished skipping '${sourceText}'`);
-    return callback(TranslateStatus.AlreadyTranslated, sourceText);
+    // console.log(
+    //   `finished skipping '${sourceText}'`);
+    callback(TranslateStatus.AlreadyTranslated, sourceText);
+    return translateApiCallCount;
   }
 
   // passthrough if contains HTML
   if (/<[a-z][\s\S]*>/i.test(sourceText) == true) {
     console.warn(`'*** Warning: text detected as html: ${sourceText}`);
-    return callback(TranslateStatus.IsHtml, sourceText);
+    callback(TranslateStatus.IsHtml, sourceText);
+    return translateApiCallCount;
   }
 
   // it is just a url
   if (sourceText.indexOf("http://") == 0 && sourceText.indexOf(" ") < 0) {
     console.warn(`'*** Warning: text detected as url: ${sourceText}`);
-    return callback(TranslateStatus.IsUrl, sourceText);
+    callback(TranslateStatus.IsUrl, sourceText);
+    return translateApiCallCount;
   }
 
   // console.log(
   //     `translate text '${sourceText}' from ${_sourceLanguage} to '${targetLanguage}'`);
 
   // fire the google translation
+  translateApiCallCount += 1;
   _googleTranslate.translate(
       sourceText, _sourceLanguage, targetLanguage, function(err, translation) {
         if (err) {
           // console.warn('*** translation error: ', err);
           console.error(`*** Error: google translate failed for: "${sourceText}"`);
-          return callback(TranslateStatus.TranslateFailed, sourceText);
+          console.error(`*** Error: google translate err: ${err}`);
+          callback(TranslateStatus.TranslateFailed, sourceText);
+          return translateApiCallCount;
+        }
+
+        if(!translation) {
+          console.error(`*** Error: google translate failed for: "${sourceText}"`);
+          callback(TranslateStatus.TranslateFailed, sourceText);
+          return translateApiCallCount;
         }
 
         // return the translated text
@@ -176,15 +187,17 @@ var messageTranslate =
         // translationNode.setAttribute('typeXXX', 'finished');
         translationNode.removeAttribute('typeXXX');
         translationNode.setAttribute('type', 'finished');
-        return callback(null, translation.translatedText);
+        callback(null, translation.translatedText);
       });
+  return translateApiCallCount;
 }
 
 // Translate all context's found in Qt *.ts file
 // Translate text from message/source message/translation
 function translateQtTsFile(inputFileName, language) {
   console.log('******************************************************');
-  console.log(` Translate to ${language}`);
+  console.log(` Translate to '${language}'`);
+  console.log(`     ${inputFileName}`);
   console.log('******************************************************');
   // Get project name from input filename.
   // Example:  myproject_en.ts
@@ -230,12 +243,16 @@ function translateQtTsFile(inputFileName, language) {
       }
     }  // end for context
 
+    // Set timeout if a translation fail to complete
+    // promises.push(new Promise((resolve, reject) => setTimeout(() => reject(1), 1*60*1000)));
+
     // When all strings are translated, write the translations to file
     Promise.all(promises)
         .then(() => {
           const xml = new XMLSerializer().serializeToString(doc);
           fs.writeFile(outputFilename, xml, function(err) {
             if (err) {
+              // console.log(err);
               return console.log(err);
             }
           });
@@ -275,6 +292,7 @@ _googleTranslate = google(_googleTranslateApiKey);
 console.log('sourceLanguage:', _sourceLanguage);
 for (let i = 0; i < tsFileList.length; i += 1) {
   const tsFile = tsFileList[i];
-  console.log(`tsFile[${i}] =  ${tsFile}`);
   const xml = translateQtTsFile(tsFile, _sourceLanguage);
 }
+
+console.log('Exit');
