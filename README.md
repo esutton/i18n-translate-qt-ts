@@ -129,7 +129,7 @@ I created this [i18n-translate-qt-ts](https://github.com/esutton/i18n-translate-
 Use requires a commercial Google Translate API key:
 - https://github.com/esutton/i18n-translate-qt-ts
 
-To add translations to all ./languages/*.ts files in this qt-translation-example project:
+To add translations to all ./languages/*.ts files in the [qt-translation-example](https://github.com/esutton/qt-translation-example) project:
 ````
 # Use environment variable to store your API key
 export API_KEY=AIzy0Vj...AIzy0VjQ
