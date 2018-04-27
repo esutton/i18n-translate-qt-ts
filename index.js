@@ -89,6 +89,23 @@ function getTranslationType(message, sourceText) {
   return translationType;
 }
 
+function setTranslatedText(doc, message, translationNode, translatedText) {
+  if (translationNode === null ) {
+    translationNode = doc.createElement('translation');
+    message.appendChild(translationNode);
+    translationNode.setAttribute('type', 'unfinished');
+  }
+
+  let textNode = translationNode.firstChild;
+  if (textNode == null) {
+    textNode = doc.createTextNode(translatedText);
+    translationNode.appendChild(textNode);
+  } else {
+    textNode.nodeValue = translatedText;
+  }
+  translationNode.setAttribute('type', 'finished');  
+}
+
 // Translate text from message/source message/translation
 //
 // ToDo: Handle XML special characters '&lt;'
@@ -145,6 +162,16 @@ function messageTranslate(targetLanguage, doc, message, callback) {
     return translateApiCallCount;
   }
 
+  console.log(`*** No need to translate ${targetLanguage}: ${sourceText}`);
+  if(_sourceLanguage === targetLanguage) {
+    // No need to call API to translate
+    // Qt QTranslator.load fails if qm file was made from an unfinished ts file
+    const translatedText = sourceText;
+    setTranslatedText(doc, message, translationNode, translatedText);
+    callback(null, sourceText);
+    return translateApiCallCount;
+  }
+
   // console.log(
   //     `translate text '${sourceText}' from ${_sourceLanguage} to '${targetLanguage}'`);
 
@@ -183,10 +210,8 @@ function messageTranslate(targetLanguage, doc, message, callback) {
           textNode.nodeValue = translation.translatedText;
         }
 
-        // translationNode.removeAttribute('type');
-        // translationNode.setAttribute('typeXXX', 'finished');
-        translationNode.removeAttribute('typeXXX');
         translationNode.setAttribute('type', 'finished');
+
         callback(null, translation.translatedText);
       });
   return translateApiCallCount;
