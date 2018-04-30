@@ -162,7 +162,6 @@ function messageTranslate(targetLanguage, doc, message, callback) {
     return translateApiCallCount;
   }
 
-  console.log(`*** No need to translate ${targetLanguage}: ${sourceText}`);
   if(_sourceLanguage === targetLanguage) {
     // No need to call API to translate
     // Qt QTranslator.load fails if qm file was made from an unfinished ts file
@@ -191,6 +190,16 @@ function messageTranslate(targetLanguage, doc, message, callback) {
           console.error(`*** Error: google translate failed for: "${sourceText}"`);
           callback(TranslateStatus.TranslateFailed, sourceText);
           return translateApiCallCount;
+        }
+
+        // Fix Google Translate "%1" to "% 1". Example:
+        // Source.......: "Send To:  %1"
+        // Translates to: 'Enviar a:% 1'
+        // Fix..........: 'Enviar a:%1'
+        if(translation.translatedText.indexOf('% ') >= 0) {
+          console.log(`dbg Fix Qt args b4 :'${translation.translatedText}'`);
+          translation.translatedText = translation.translatedText.replace(/(\%)\s(?=\d)/g, ' $1')
+          console.log(`dbg Fix Qt args aft:'${translation.translatedText}'`);
         }
 
         // return the translated text
