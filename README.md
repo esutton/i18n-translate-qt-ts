@@ -136,6 +136,8 @@ export API_KEY=AIzy0Vj...AIzy0VjQ
 node index.js ${API_KEY} languages en
 ````
 
+- Seems to work best if you process in small batches of one or two *.ts files.
+    - Too many async queries active?
 - If errors occur, you may need to run multiple times until all strings have translations.
     - Perhaps throttling the API calls might help this.
 - If needed, send auto-translations to a native speaker for improvements.

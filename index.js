@@ -180,19 +180,20 @@ function messageTranslate(targetLanguage, doc, message, callback) {
       sourceText, _sourceLanguage, targetLanguage, function(err, translation) {
         if (err) {
           // console.warn('*** translation error: ', err);
-          console.error(`*** Error: google translate failed for: "${sourceText}"`);
+          console.error(`*** Error: google translate from '${_sourceLanguage}' to '${targetLanguage}' failed for: "${sourceText}"`);
           console.error(`*** Error: google translate err: ${err}`);
           callback(TranslateStatus.TranslateFailed, sourceText);
           return translateApiCallCount;
         }
 
         if(!translation) {
-          console.error(`*** Error: google translate failed for: "${sourceText}"`);
+          console.error(`*** Error: google translate '${targetLanguage}' failed for: "${sourceText}"`);
           callback(TranslateStatus.TranslateFailed, sourceText);
           return translateApiCallCount;
         }
 
-        // Fix Google Translate "%1" to "% 1". Example:
+        // Fix Google Translate "%1" to "% 1".
+        // Example:
         // Source.......: "Send To:  %1"
         // Translates to: 'Enviar a:% 1'
         // Fix..........: 'Enviar a:%1'
@@ -252,7 +253,16 @@ function translateQtTsFile(inputFileName, language) {
     }
     const doc = new xmldom().parseFromString(data, 'application/xml');
     const tsElement = doc.getElementsByTagName('TS')[0];
-    const targetLanguage = getAttributeByName(tsElement, 'language');
+
+    // language="en_US"
+    // language="es_ES">
+    // language="de_DE">
+    let targetLanguage = getAttributeByName(tsElement, 'language');
+    const pos = targetLanguage.indexOf('_');
+    if(pos > 0) {
+      targetLanguage = targetLanguage.substring(0, pos);
+    }
+
     console.log('targetLanguage:', targetLanguage);
 
     const promises = [];
@@ -267,7 +277,7 @@ function translateQtTsFile(inputFileName, language) {
           messageTranslate(
               targetLanguage, doc, message, function(err, translation) {
                 if (err > 0) {
-                  console.error('** Error messageTranslate failed err', err);
+                  console.error(`** Error messageTranslate to '${language}' failed err:${err}`);
                   reject(err);
                 } else {
                   resolve();
