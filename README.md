@@ -123,8 +123,13 @@ TRANSLATIONS += \
 ## Automated Translation Using Google Translate
 ### [i18n-translate-qt-ts](https://github.com/esutton/i18n-translate-qt-ts)
 
+I created this [i18n-translate-qt-ts](https://github.com/esutton/i18n-translate-qt-ts) as a node.js command line utility.  
 
-I created this [i18n-translate-qt-ts](https://github.com/esutton/i18n-translate-qt-ts) as a node.js command line utility.
+I was inspired by another github project used to auto-translate a react native app
+* [i18n-translate-json](https://www.npmjs.com/package/i18n-translate-json)
+
+Since this project was so helpful, I felt obligated to share [i18n-translate-qt-ts](https://github.com/esutton/i18n-translate-qt-ts).  
+* Ulterior motive:  I was hoping someone in the community might help improve on it.
 
 Use requires a commercial Google Translate API key:
 - https://github.com/esutton/i18n-translate-qt-ts
