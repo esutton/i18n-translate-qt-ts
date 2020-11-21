@@ -1,8 +1,6 @@
 #!/bin/sh
 ############################################
 # Test translation
-#
-# Author: edward.sutton@subsite.com
 ###########################################
 
 SourceFolder=test/simple/unfinished

@@ -54,8 +54,8 @@ File: myproject_es.ts
   <context>
       <name>QPushButton</name>
       <message>
-          <source>Hello mother</source>
-          <translation type="finished">Hola madre</translation>          
+          <source>Hello</source>
+          <translation type="finished">Hola</translation>          
       </message>
   </context>
 </TS>
@@ -98,7 +98,7 @@ TRANSLATIONS += \
     languages/TranslationExample_de.ts
 ````
 
-2) Use Qt lupdate to auto-generate your inital ts files.
+2) Use Qt lupdate to auto-generate your initial ts files.
    - From Qt Creator menu select:
        - Tools > External > Linguist > Update Translations (lupdate)
 
@@ -108,9 +108,9 @@ TRANSLATIONS += \
     - When you run lupdate again, it will removed all ````translation/@type=finished```` attributes
         - Missing type attribute is same as "finished"
         - Y
-    - For small one-by-word projects, use free web browser Google Transalte.
+    - For small one-by-word projects, use free web browser Google Translate.
         - https://translate.google.com/?
-    - I made this node.js script that requires a commercial Google Trnaslate API key:
+    - I made this node.js script that requires a commercial Google Translate API key:
         - https://github.com/esutton/i18n-translate-qt-ts
 
 4) Use Qt lrelease to generate compressed *.qm files from translated *.ts files
@@ -125,10 +125,12 @@ TRANSLATIONS += \
 
 I created this [i18n-translate-qt-ts](https://github.com/esutton/i18n-translate-qt-ts) as a node.js command line utility.  
 
-I was inspired by another github project used to auto-translate a react native app
+I was inspired by another github project
+[i18n-translate-json](https://www.npmjs.com/package/i18n-translate-json) used to
+auto-translate a react native app
 * [i18n-translate-json](https://www.npmjs.com/package/i18n-translate-json)
 
-Since this project was so helpful, I felt obligated to share [i18n-translate-qt-ts](https://github.com/esutton/i18n-translate-qt-ts).  
+Since [i18n-translate-json](https://www.npmjs.com/package/i18n-translate-json) was so helpful, I felt obligated to share [i18n-translate-qt-ts](https://github.com/esutton/i18n-translate-qt-ts).  
 * Ulterior motive:  I was hoping someone in the community might help improve on it.
 
 Use requires a commercial Google Translate API key:

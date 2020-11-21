@@ -547,12 +547,12 @@ Relative</source>
         </message>
         <message>
             <location filename="../source/pdfprinter_qt.cpp" line="825"/>
-            <source>Subsite Secured</source>
+            <source>Acme Secured</source>
             <translation type="unfinished"></translation>
         </message>
         <message>
             <location filename="../source/pdfprinter_qt.cpp" line="830"/>
-            <source>Subsite Tracking Data Integrity</source>
+            <source>Acme Tracking Data Integrity</source>
             <translation type="unfinished"></translation>
         </message>
         <message>
@@ -1662,7 +1662,7 @@ reconnect to %1 using your device&apos;s Bluetooth Settings.</source>
         </message>
         <message>
             <location filename="../forms/formjobsettings.ui" line="725"/>
-            <source>Show locators and other Subsite devices</source>
+            <source>Show locators and other Acme devices</source>
             <translation type="unfinished"></translation>
         </message>
         <message>
@@ -2272,7 +2272,7 @@ Elevation</source>
         </message>
         <message>
             <location filename="../forms/formsoftwareupdatecheck.ui" line="20"/>
-            <source>Checks for updates of your Subsite Electronics software </source>
+            <source>Checks for updates of your Acme Electronics software </source>
             <translation type="unfinished"></translation>
         </message>
         <message>
@@ -2335,7 +2335,7 @@ Elevation</source>
         <name>tcmw::FormSoftwareUpdateInstall</name>
         <message>
             <location filename="../forms/formsoftwareupdateinstall.ui" line="14"/>
-            <source>Subsite Electronics Software Update</source>
+            <source>Acme Electronics Software Update</source>
             <translation type="unfinished"></translation>
         </message>
         <message>
