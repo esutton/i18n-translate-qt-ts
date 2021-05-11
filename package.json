@@ -35,6 +35,6 @@
     "fs": "^0.0.1-security",
     "glob-fs": "^0.1.7",
     "google-translate": "^2.1.0",
-    "xmldom": "^0.1.27"
+    "xmldom": "^0.5.0"
   }
 }
