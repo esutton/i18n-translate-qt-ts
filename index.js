@@ -300,7 +300,7 @@ function translateQtTsFile(inputFileName, language) {
     // promises.push(new Promise((resolve, reject) => setTimeout(() => reject(1), 1*60*1000)));
 
     // When all strings are translated, write the translations to file
-    Promise.all(promises)
+    Promise.allSettled(promises)
         .then(() => {
           const xml = new XMLSerializer().serializeToString(doc);
           fs.writeFile(outputFilename, xml, function(err) {
