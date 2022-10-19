@@ -104,7 +104,7 @@ function setTranslatedText(doc, message, translationNode, translatedText) {
   } else {
     textNode.nodeValue = translatedText;
   }
-  translationNode.setAttribute('type', 'finished');  
+  translationNode.removeAttribute('type');  // 'finished' implied
 }
 
 // Translate text from message/source message/translation
@@ -221,7 +221,7 @@ function messageTranslate(targetLanguage, doc, message, callback) {
           textNode.nodeValue = translation.translatedText;
         }
 
-        translationNode.setAttribute('type', 'finished');
+        translationNode.removeAttribute('type');  // 'finished' implied
 
         callback(null, translation.translatedText);
       });
