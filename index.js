@@ -11,6 +11,7 @@ const glob = require('glob-fs')({gitignore: true});
 const google = require('google-translate');
 const program = require('commander');
 const xmldom = require('xmldom').DOMParser;
+const PromiseThrottle = require('promise-throttle');
 var XMLSerializer = require('xmldom').XMLSerializer;
 
 const Debug = true;
@@ -103,7 +104,7 @@ function setTranslatedText(doc, message, translationNode, translatedText) {
   } else {
     textNode.nodeValue = translatedText;
   }
-  translationNode.setAttribute('type', 'finished');  
+  translationNode.removeAttribute('type');  // 'finished' implied
 }
 
 // Translate text from message/source message/translation
@@ -220,7 +221,7 @@ function messageTranslate(targetLanguage, doc, message, callback) {
           textNode.nodeValue = translation.translatedText;
         }
 
-        translationNode.setAttribute('type', 'finished');
+        translationNode.removeAttribute('type');  // 'finished' implied
 
         callback(null, translation.translatedText);
       });
@@ -265,25 +266,33 @@ function translateQtTsFile(inputFileName, language) {
 
     console.log('targetLanguage:', targetLanguage);
 
+    var translateMessageThrottled = function(targetLanguage, doc, message) {
+      return new Promise(function(resolve, reject) {
+        // Translate text from message/source message/translation
+        messageTranslate(
+          targetLanguage, doc, message, function(err, translation) {
+            if (err > 0) {
+              console.error(`** Error messageTranslate to '${language}' failed err:${err}`);
+              reject(err);
+            } else {
+              resolve();
+            }
+          });
+      });
+    }
+
     const promises = [];
     const contextList = doc.getElementsByTagName('context');
+    var promiseThrottle = new PromiseThrottle({
+        requestsPerSecond: 100,
+        promiseImplementation: Promise
+    });
     for (let i = 0; i < contextList.length; i += 1) {
       const context = contextList[i];
       const messageList = context.getElementsByTagName('message');
       for (let j = 0; j < messageList.length; j += 1) {
         const message = messageList[j];
-        promises.push(new Promise((resolve, reject) => {
-          // Translate text from message/source message/translation
-          messageTranslate(
-              targetLanguage, doc, message, function(err, translation) {
-                if (err > 0) {
-                  console.error(`** Error messageTranslate to '${language}' failed err:${err}`);
-                  reject(err);
-                } else {
-                  resolve();
-                }
-              });
-        }));
+        promises.push(promiseThrottle.add(translateMessageThrottled.bind(this, targetLanguage, doc, message)))
       }
     }  // end for context
 
@@ -291,7 +300,7 @@ function translateQtTsFile(inputFileName, language) {
     // promises.push(new Promise((resolve, reject) => setTimeout(() => reject(1), 1*60*1000)));
 
     // When all strings are translated, write the translations to file
-    Promise.all(promises)
+    Promise.allSettled(promises)
         .then(() => {
           const xml = new XMLSerializer().serializeToString(doc);
           fs.writeFile(outputFilename, xml, function(err) {
