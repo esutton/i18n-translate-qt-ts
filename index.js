@@ -149,13 +149,6 @@ function messageTranslate(targetLanguage, doc, message, callback) {
     return translateApiCallCount;
   }
 
-  // passthrough if contains HTML
-  if (/<[a-z][\s\S]*>/i.test(sourceText) == true) {
-    console.warn(`'*** Warning: text detected as html: ${sourceText}`);
-    callback(TranslateStatus.IsHtml, sourceText);
-    return translateApiCallCount;
-  }
-
   // it is just a url
   if (sourceText.indexOf("http://") == 0 && sourceText.indexOf(" ") < 0) {
     console.warn(`'*** Warning: text detected as url: ${sourceText}`);
@@ -230,7 +223,7 @@ function messageTranslate(targetLanguage, doc, message, callback) {
 
 // Translate all context's found in Qt *.ts file
 // Translate text from message/source message/translation
-function translateQtTsFile(inputFileName, language) {
+async function translateQtTsFile(inputFileName, language) {
   console.log('******************************************************');
   console.log(` Translate to '${language}'`);
   console.log(`     ${inputFileName}`);
@@ -247,71 +240,73 @@ function translateQtTsFile(inputFileName, language) {
   // const outputFilename = `${inputFileName.substring(0,
   // pos)}_${language}_output.ts`;
   const outputFilename = `${inputFileName}`;
+  const promises = [];
 
-  fs.readFile(inputFileName, 'utf-8', function(err, data) {
-    if (err) {
-      throw err;
-    }
-    const doc = new xmldom().parseFromString(data, 'application/xml');
-    const tsElement = doc.getElementsByTagName('TS')[0];
+  const data = fs.readFileSync(inputFileName, 'utf-8');
+  const doc = new xmldom().parseFromString(data, 'application/xml');
+  const tsElement = doc.getElementsByTagName('TS')[0];
 
-    // language="en_US"
-    // language="es_ES">
-    // language="de_DE">
-    let targetLanguage = getAttributeByName(tsElement, 'language');
-    const pos = targetLanguage.indexOf('_');
-    if(pos > 0) {
-      targetLanguage = targetLanguage.substring(0, pos);
-    }
+  // language="en_US"
+  // language="es_ES">
+  // language="de_DE">
+  let targetLanguage = getAttributeByName(tsElement, 'language');
+  const languageCountrySeparatorPos = targetLanguage.indexOf('_');
+  if (languageCountrySeparatorPos > 0) {
+    targetLanguage = targetLanguage.substring(0, languageCountrySeparatorPos);
+  }
 
-    console.log('targetLanguage:', targetLanguage);
+  console.log('targetLanguage:', targetLanguage);
 
-    var translateMessageThrottled = function(targetLanguage, doc, message) {
-      return new Promise(function(resolve, reject) {
-        // Translate text from message/source message/translation
-        messageTranslate(
-          targetLanguage, doc, message, function(err, translation) {
-            if (err > 0) {
-              console.error(`** Error messageTranslate to '${language}' failed err:${err}`);
-              reject(err);
-            } else {
-              resolve();
-            }
-          });
-      });
-    }
-
-    const promises = [];
-    const contextList = doc.getElementsByTagName('context');
-    var promiseThrottle = new PromiseThrottle({
-        requestsPerSecond: 100,
-        promiseImplementation: Promise
+  var translateMessageThrottled = function (targetLanguage, doc, message) {
+    return new Promise(function (resolve, reject) {
+      // Translate text from message/source message/translation
+      messageTranslate(
+        targetLanguage, doc, message, function (err, translation) {
+          if (err > 0) {
+            console.error(`** Error messageTranslate to '${targetLanguage}' failed err:${err}`);
+            reject(err);
+          } else {
+            resolve();
+          }
+        });
     });
-    for (let i = 0; i < contextList.length; i += 1) {
-      const context = contextList[i];
-      const messageList = context.getElementsByTagName('message');
-      for (let j = 0; j < messageList.length; j += 1) {
-        const message = messageList[j];
-        promises.push(promiseThrottle.add(translateMessageThrottled.bind(this, targetLanguage, doc, message)))
-      }
-    }  // end for context
+  }
 
-    // Set timeout if a translation fail to complete
-    // promises.push(new Promise((resolve, reject) => setTimeout(() => reject(1), 1*60*1000)));
-
-    // When all strings are translated, write the translations to file
-    Promise.allSettled(promises)
-        .then(() => {
-          const xml = new XMLSerializer().serializeToString(doc);
-          fs.writeFile(outputFilename, xml, function(err) {
-            if (err) {
-              // console.log(err);
-              return console.log(err);
-            }
-          });
-        })
-        .catch(err => console.log(`*** Error Promise.all writing : ${outputFilename}\n${err}`));
+  const contextList = doc.getElementsByTagName('context');
+  var promiseThrottle = new PromiseThrottle({
+    requestsPerSecond: 5,
+    promiseImplementation: Promise
   });
+  for (let i = 0; i < contextList.length; i += 1) {
+    const context = contextList[i];
+    const messageList = context.getElementsByTagName('message');
+    for (let j = 0; j < messageList.length; j += 1) {
+      const message = messageList[j];
+      promises.push(promiseThrottle.add(translateMessageThrottled.bind(this, targetLanguage, doc, message)))
+    }
+  }  // end for context
+
+  // Set timeout if a translation fail to complete
+  // promises.push(new Promise((resolve, reject) => setTimeout(() => reject(1), 1*60*1000)));
+
+  // When all strings are translated, write the translations to file
+  await Promise.allSettled(promises);
+  if (!doc)
+    return;
+
+  const xml = new XMLSerializer().serializeToString(doc);
+  fs.writeFileSync(outputFilename, xml, function (err) {
+    if (err) {
+      // console.log(err);
+      console.log(err);
+    }
+  });
+}
+
+async function translateQtTsFiles(files, language) {
+  for (const file of files) {
+    await translateQtTsFile(file, language);
+  }
 }
 
 program.version('0.0.1')
@@ -336,16 +331,12 @@ const tsFileList = glob.readdirSync(tsFileListPattern, {});
 console.log('dbg tsFileList:', tsFileList);
 if (!tsFileList.length) {
   console.error(
-      `*** Error no Qt *.tsl files found in workingFolder: ${_workingFolder}`)
+      `*** Error no Qt *.ts files found in workingFolder: ${_workingFolder}`)
   return;
 }
 
 _googleTranslate = google(_googleTranslateApiKey);
 
 console.log('sourceLanguage:', _sourceLanguage);
-for (let i = 0; i < tsFileList.length; i += 1) {
-  const tsFile = tsFileList[i];
-  const xml = translateQtTsFile(tsFile, _sourceLanguage);
-}
+translateQtTsFiles(tsFileList, _sourceLanguage);
 
-console.log('Exit');
