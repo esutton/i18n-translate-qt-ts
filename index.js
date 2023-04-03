@@ -149,13 +149,6 @@ function messageTranslate(targetLanguage, doc, message, callback) {
     return translateApiCallCount;
   }
 
-  // passthrough if contains HTML
-  if (/<[a-z][\s\S]*>/i.test(sourceText) == true) {
-    console.warn(`'*** Warning: text detected as html: ${sourceText}`);
-    callback(TranslateStatus.IsHtml, sourceText);
-    return translateApiCallCount;
-  }
-
   // it is just a url
   if (sourceText.indexOf("http://") == 0 && sourceText.indexOf(" ") < 0) {
     console.warn(`'*** Warning: text detected as url: ${sourceText}`);
